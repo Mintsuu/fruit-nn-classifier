@@ -1,7 +1,0 @@
-/train/*
-/test/*
-.git
-.env
-*.png
-*.jpg
-*.jpeg
