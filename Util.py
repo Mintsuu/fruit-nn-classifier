@@ -24,7 +24,7 @@ def load_filepaths(target_dir):
   return paths
 
 
-def prepare_data(target_dir):
+def prepare_data(target_dir, device):
   labels = []
   # Retrieves the names of all files in the target directory
   class_names = os.listdir(target_dir)
@@ -45,45 +45,29 @@ def prepare_data(target_dir):
   binned_labels = { name: index for index, name in enumerate(sorted(set(labels))) }
   # Converting categories into their assigned numerical bins
   binned_outputs = [binned_labels[name] for name in labels]
-  return binned_labels, np.array(class_to_idx), torch.tensor(binned_outputs)
+  return binned_labels, np.array(class_to_idx), torch.tensor(binned_outputs).to(device)
 
-def load_images(filepaths):
+def load_images(filepaths, device):
+  # Define image transformation function
   transform = transforms.Compose([
-    #transforms.Resize((224, 224)),
     transforms.Resize((28, 28)),
     transforms.ToTensor()
     ])
   
-  # print(transform)
-  
-
-  # Instantiate class to transform image to tensor
-  to_tensor = transforms.ToTensor()
-
-  tensor = None
-
-  # List all files in the directory
-  for item in filepaths:
-    #print("Opening:", item)
-    image = Image.open(item).convert("RGB")
-    #print(f"image size = {image.size}")
-
-    # transforms.ToTensor() performs transformations on images
-    # values of img_tensor are in the range of [0.0, 1.0]
-    img_tensor = transform(image)
-
-    #img_tensor = to_tensor(image) # convert into pytorch's tensor to work with
-    #print(f"img_tensor.shape = {img_tensor.shape}")
-    #input()
-
-    if tensor is None:
-      # size: [1,1,28,28]
-      tensor = img_tensor.unsqueeze(0) # add a new dimension
-    else:
-      # concatenate becomes [2,1,28,28], [3,1,28,28], [4,1,28,28] ...
-      # dim=0 concatenates along the axis=0 (row-wise)
-      tensor = torch.cat((tensor, img_tensor.unsqueeze(0)), dim=0)
+  # Store tensor list for all images 
+  tensor_list = []
+ 
+  # Perform data conversion into tensors
+  for image_path in filepaths:
+    image = Image.open(image_path).convert("RGB")
+    image_tensor = transform(image)
+    tensor_list.append(image_tensor.unsqueeze(0).to(device))
     
-  return tensor
+  # Check if batch of tensors have been properly added to the list, else return empty tensor
+  if tensor_list:
+    result_tensor = torch.cat(tensor_list, dim=0)
+    return result_tensor
+  else:
+    return torch.empty(0, 3, 28, 28, device=device)
 
-load_images(["./train/apple_1.jpg"])
+# load_images(["./train/apple_1.jpg"], device="cuda")

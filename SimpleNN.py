@@ -51,10 +51,10 @@ class SimpleCNN(nn.Module):
     
     return x
 
-def train(model, criterion, optimizer, filepaths, labels, device):
+def train(model, criterion, optimizer, filepaths, labels, device, epochs):
   # our hyper-parameters for training
-  n_epochs = 6
-  batch_size = 12 
+  n_epochs = epochs
+  batch_size = 16
 
   for epoch in range(n_epochs):
     # For tracking and printing our training-progress
@@ -66,10 +66,10 @@ def train(model, criterion, optimizer, filepaths, labels, device):
     permutation = torch.randperm(total_samples)
     for i in range(0, total_samples, batch_size):
       indices = permutation[i : i+batch_size]
-      batch_inputs = load_images(filepaths[indices])
+      batch_inputs = load_images(filepaths[indices], device)
       batch_labels = labels[indices]
-
-      # Forward pass: coyympute predicted outputs
+      
+      # Forward pass: compute predicted outputs
       outputs = model(batch_inputs)
 
       # Compute loss
@@ -97,7 +97,7 @@ def train(model, criterion, optimizer, filepaths, labels, device):
             f"({samples_trained}/{total_samples}): " +
             f"Loss={avg_loss:.5f}, Accuracy={accuracy:.5f}")
       
-def test(model, filepaths, labels):
+def test(model, filepaths, labels, device):
   batch_size = 12
   samples_tested = 0
   correct_preds = 0
@@ -116,7 +116,7 @@ def test(model, filepaths, labels):
 
 
   for i in range(0, total_samples, batch_size):
-    batch_inputs = load_images(filepaths[i : i + batch_size])
+    batch_inputs = load_images(filepaths[i : i + batch_size], device)
     batch_labels = labels[i : i + batch_size]
 
     # Forward pass: compute predicted outputs
