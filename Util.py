@@ -54,6 +54,8 @@ def load_images(filepaths):
     transforms.ToTensor()
     ])
   
+  # print(transform)
+  
 
   # Instantiate class to transform image to tensor
   to_tensor = transforms.ToTensor()
@@ -83,3 +85,5 @@ def load_images(filepaths):
       tensor = torch.cat((tensor, img_tensor.unsqueeze(0)), dim=0)
     
   return tensor
+
+load_images(["./train/apple_1.jpg"])

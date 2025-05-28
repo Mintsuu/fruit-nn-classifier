@@ -51,7 +51,7 @@ class SimpleCNN(nn.Module):
     
     return x
 
-def train(model, criterion, optimizer, filepaths, labels):
+def train(model, criterion, optimizer, filepaths, labels, device):
   # our hyper-parameters for training
   n_epochs = 6
   batch_size = 12 
