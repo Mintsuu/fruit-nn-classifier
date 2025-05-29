@@ -1,7 +1,10 @@
 import os, torch
 import numpy as np
-from torchvision import transforms
+from torchvision.transforms.functional import adjust_saturation
+from torchvision.transforms.functional import adjust_hue
+from torchvision import transforms 
 from PIL import Image
+
 
 
 def dataset_labels(labels):
@@ -55,19 +58,29 @@ def load_images(filepaths, device):
     ])
   
   # Store tensor list for all images 
-  tensor_list = []
+  tensor_list = [] # empty array where will add each batch tensor into array 
  
   # Perform data conversion into tensors
   for image_path in filepaths:
+   
     image = Image.open(image_path).convert("RGB")
+    # pil image converted to tensor rgb 
     image_tensor = transform(image)
-    tensor_list.append(image_tensor.unsqueeze(0).to(device))
+     # apply saturation 
+    image_saturation_tensor = adjust_saturation(img=image_tensor, saturation_factor=1.3)
+    #apply hue 
+    image_hue_tensor = adjust_hue(img = image_tensor, hue_factor = 0.2)
+    
+    # add up the image_tensor with image_saturation_tensor
+    combined_tensor = torch.clamp(image_tensor + image_saturation_tensor + image_hue_tensor, 0.0, 1.0)
+    tensor_list.append(combined_tensor.unsqueeze(0).to(device))
     
   # Check if batch of tensors have been properly added to the list, else return empty tensor
   if tensor_list:
     result_tensor = torch.cat(tensor_list, dim=0)
     return result_tensor
   else:
+    print("No images loaded into tensors ")
     return torch.empty(0, 3, 28, 28, device=device)
 
 # load_images(["./train/apple_1.jpg"], device="cuda")

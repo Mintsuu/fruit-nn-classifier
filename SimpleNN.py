@@ -53,8 +53,8 @@ class SimpleCNN(nn.Module):
 
 def train(model, criterion, optimizer, filepaths, labels, device, epochs):
   # our hyper-parameters for training
-  n_epochs = epochs
-  batch_size = 16
+  n_epochs = epochs #num of epochs
+  batch_size = 16 # processes 16 images at one go
 
   for epoch in range(n_epochs):
     # For tracking and printing our training-progress
@@ -63,6 +63,7 @@ def train(model, criterion, optimizer, filepaths, labels, device, epochs):
     correct_preds = 0
     total_samples = len(filepaths) 
 
+    # randomly selects images 
     permutation = torch.randperm(total_samples)
     for i in range(0, total_samples, batch_size):
       indices = permutation[i : i+batch_size]
