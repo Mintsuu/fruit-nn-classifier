@@ -22,7 +22,7 @@ class SimpleCNN(nn.Module):
     self.fc1 = nn.Linear(in_features= 7 * 7 * 32, out_features=128)
     
     # Fully Connected Layer 2: input size = 128, output size = 10 (for 10 output classes).
-    self.fc2 = nn.Linear(in_features=128, out_features=10)
+    self.fc2 = nn.Linear(in_features=128, out_features=4)
 
     # Activation function
     self.relu = nn.ReLU()
