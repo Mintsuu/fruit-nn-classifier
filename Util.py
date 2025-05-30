@@ -1,5 +1,6 @@
 import os, torch
 import numpy as np
+from torchvision.utils import save_image
 from torchvision.transforms.functional import adjust_saturation
 from torchvision.transforms.functional import adjust_hue
 from torchvision import transforms 
@@ -53,7 +54,7 @@ def prepare_data(target_dir, device):
 def load_images(filepaths, device):
   # Define image transformation function
   transform = transforms.Compose([
-    transforms.Resize((28, 28)),
+    transforms.Resize((224, 224)),
     transforms.ToTensor()
     ])
   
@@ -67,12 +68,15 @@ def load_images(filepaths, device):
     # pil image converted to tensor rgb 
     image_tensor = transform(image)
      # apply saturation 
-    image_saturation_tensor = adjust_saturation(img=image_tensor, saturation_factor=1.3)
+    image_saturation_tensor = adjust_saturation(img=image_tensor, saturation_factor=2.0)
     #apply hue 
     image_hue_tensor = adjust_hue(img = image_tensor, hue_factor = 0.2)
+    save_image(image_tensor, "baseline_test.png")
+    save_image(image_saturation_tensor, "saturation_test.png")
+    save_image(image_hue_tensor, "hue_test.png")
     
     # add up the image_tensor with image_saturation_tensor
-    combined_tensor = torch.clamp(image_tensor + image_saturation_tensor + image_hue_tensor, 0.0, 1.0)
+    combined_tensor = torch.cat(( image_saturation_tensor, image_hue_tensor), dim=0) 
     tensor_list.append(combined_tensor.unsqueeze(0).to(device))
     
   # Check if batch of tensors have been properly added to the list, else return empty tensor

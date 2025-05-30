@@ -8,7 +8,7 @@ class SimpleCNN(nn.Module):
     super(SimpleCNN, self).__init__()
     # in_channels=1 because our image is grayscale (if color images, then in_channels=3 for RGB).
     # out_channels=16 means we have 16 filters, each filter of size 3x3x1.
-    self.conv1 = nn.Conv2d(in_channels=3, out_channels=16, kernel_size=3, padding=1)
+    self.conv1 = nn.Conv2d(in_channels=6, out_channels=16, kernel_size=3, padding=1)
     
     # in_channels=16 because our out_channels=16 from previous layer.
     # out_channels=32 means we are using 32 filters, each filter of size 3x3x16,
@@ -19,7 +19,7 @@ class SimpleCNN(nn.Module):
     self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
     
     # Fully Connected Layer 1: input size = 7 * 7 * 32 (from feature maps), output size = 128.
-    self.fc1 = nn.Linear(in_features= 7 * 7 * 32, out_features=128)
+    self.fc1 = nn.Linear(in_features= 32 * 56 * 56, out_features=128)
     
     # Fully Connected Layer 2: input size = 128, output size = 10 (for 10 output classes).
     self.fc2 = nn.Linear(in_features=128, out_features=4)
@@ -40,7 +40,7 @@ class SimpleCNN(nn.Module):
     x = self.pool(x)
 
     # Flatten the feature maps 
-    x = x.view(-1, 7 * 7 * 32)
+    x = x.view(-1, 56 * 56 * 32)
 
     # Fully connected layers
     x = self.fc1(x)
@@ -53,7 +53,7 @@ class SimpleCNN(nn.Module):
 
 def train(model, criterion, optimizer, filepaths, labels, device, epochs):
   # our hyper-parameters for training
-  n_epochs = epochs #num of epochs
+  n_epochs = epochs 
   batch_size = 16 # processes 16 images at one go
 
   for epoch in range(n_epochs):

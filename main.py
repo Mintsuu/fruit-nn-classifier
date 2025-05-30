@@ -4,9 +4,7 @@ import torch.optim as optim
 from SimpleNN import SimpleCNN, train, test
 from Util import prepare_data
 
-
-# Set device type (check
-#  if you have a NVIDIA card)
+# Set device type (check if you have a NVIDIA card)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Currently using {device}...")
 dir_train = "./train" 
@@ -19,7 +17,7 @@ model = SimpleCNN().to(device)
 criterion = nn.CrossEntropyLoss() # define loss function
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 # print(filepaths)
-train(model, criterion, optimizer, filepaths, labels, device, epochs=10)
+train(model, criterion, optimizer, filepaths, labels, device, epochs=7)
 
 # Test the model
 dir_test = "./test/"
