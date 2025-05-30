@@ -51,10 +51,10 @@ def prepare_data(target_dir, device):
   binned_outputs = [binned_labels[name] for name in labels]
   return binned_labels, np.array(class_to_idx), torch.tensor(binned_outputs).to(device)
 
-def load_images(filepaths, device):
+def load_images(filepaths, device, dimensions):
   # Define image transformation function
   transform = transforms.Compose([
-    transforms.Resize((224, 224)),
+    transforms.Resize(dimensions),
     transforms.ToTensor()
     ])
   
