@@ -2,6 +2,10 @@ import torch
 import torch.nn as nn
 import numpy as np
 from Util import load_images
+import matplotlib.pyplot as plt
+from sklearn.metrics import (precision_score, recall_score,
+                             f1_score, confusion_matrix,
+                             ConfusionMatrixDisplay)
 
 class SimpleCNN(nn.Module):
   def __init__(self, input_channels, image_dimensions):
@@ -65,8 +69,10 @@ def train(model, criterion, optimizer, filepaths, labels, device, epochs, image_
     permutation = torch.randperm(total_samples)
     for i in range(0, total_samples, batch_size):
       indices = permutation[i : i+batch_size]
-      batch_inputs = load_images(filepaths[indices], device, dimensions=image_dimensions)
-      batch_labels = labels[indices]
+      batch_inputs = load_images(filepaths[indices], device, dimensions=image_dimensions, return_augmented=True)
+      # batch_labels = labels[indices]
+      dup_factor   = batch_inputs.size(0) // len(indices)     # e.g. 3 if aug ×3
+      batch_labels = labels[indices].repeat_interleave(dup_factor).to(device)
       
       # Forward pass: compute predicted outputs
       outputs = model(batch_inputs)
@@ -97,7 +103,7 @@ def train(model, criterion, optimizer, filepaths, labels, device, epochs, image_
             f"Loss={avg_loss:.5f}, Accuracy={accuracy:.5f}")
       
 def test(model, filepaths, labels, device, image_dimensions):
-  batch_size = 12
+  batch_size = 60
   samples_tested = 0
   correct_preds = 0
   total_samples = len(filepaths)
@@ -115,7 +121,7 @@ def test(model, filepaths, labels, device, image_dimensions):
 
 
   for i in range(0, total_samples, batch_size):
-    batch_inputs = load_images(filepaths[i : i + batch_size], device, dimensions=image_dimensions)
+    batch_inputs = load_images(filepaths[i : i + batch_size], device, dimensions=image_dimensions, return_augmented=False)
     batch_labels = labels[i : i + batch_size]
 
     # Forward pass: compute predicted outputs
@@ -135,5 +141,28 @@ def test(model, filepaths, labels, device, image_dimensions):
     all_targets.extend(batch_labels.cpu().numpy())
 
 
-
+    # Accuracy score
     print(f"({samples_tested}/{total_samples}): Accuracy={accuracy:.5f}")
+
+    # Other metrics
+    precision = precision_score(all_targets, all_preds, average="macro")
+    recall    = recall_score   (all_targets, all_preds, average="macro")
+    f1        = f1_score       (all_targets, all_preds, average="macro")
+
+    print("\n=== Macro-averaged metrics on test set ===")
+    print(f"Precision : {precision:.4f}")
+    print(f"Recall    : {recall   :.4f}")
+    print(f"F1-score  : {f1       :.4f}")
+
+    # Confusion matrix plot
+    cm = confusion_matrix(all_targets, all_preds)
+    fig, ax = plt.subplots(figsize=(5, 5))
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm,
+                                  display_labels=["apple",
+                                                  "banana",
+                                                  "mixed",
+                                                  "orange"])
+    disp.plot(ax=ax, values_format="d")
+    ax.set_title("Confusion Matrix")
+    plt.tight_layout()
+    plt.show()

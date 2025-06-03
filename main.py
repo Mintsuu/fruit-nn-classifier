@@ -12,7 +12,7 @@ output_labels, filepaths, labels = prepare_data(dir_train, device)
 
 target_image_size = (160,160)
 # Instantiate the model, define the loss function and optimizer
-model = SimpleCNN(input_channels=6, image_dimensions=target_image_size).to(device)
+model = SimpleCNN(input_channels=3, image_dimensions=target_image_size).to(device)
 
 # Train the model
 criterion = nn.CrossEntropyLoss() # define loss function
