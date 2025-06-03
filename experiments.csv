@@ -1,0 +1,2 @@
+timestamp,model_name,model_layers,augmentation,train_batch,train_inputs,epochs,accuracy,precision,recall,f1_score,conf_matrix,model_notes
+2025-06-04T03:04:11,SimpleCNN,conv1:Conv2d(448) ; conv2:Conv2d(4640) ; pool:MaxPool2d(0) ; fc1:Linear(6553728) ; fc2:Linear(516) ; relu:ReLU(0),test,16,240,6,0.9,0.9248,0.773,0.7813,"[[18, 1, 0, 0], [1, 17, 0, 0], [2, 1, 1, 1], [0, 0, 0, 18]]",

@@ -63,13 +63,12 @@ def prepare_data(target_dir, device):
   binned_outputs = [binned_labels[name] for name in labels]
   return binned_labels, np.array(class_to_idx), torch.tensor(binned_outputs).to(device)
 
-def load_images(filepaths, device, dimensions, return_augmented=False):
+def load_images(filepaths, device, dimensions, augmentation):
   # Define image transformation function
   transform = transforms.Compose([
     transforms.Resize(160),
-    PadToSquare(),
-    transforms.Resize((160, 160)),      # shorter edge → 160, keeps aspect
-    # transforms.CenterCrop(dimensions),
+    # PadToSquare(),     # shorter edge → 160, keeps aspect
+    transforms.CenterCrop(dimensions),
     transforms.ToTensor()       # convert to [0,1] tensor
     ])
   
@@ -82,6 +81,9 @@ def load_images(filepaths, device, dimensions, return_augmented=False):
     image = Image.open(image_path).convert("RGB")
     # pil image converted to tensor rgb 
     image_tensor = transform(image)
+
+
+    save_image(image_tensor, "baseImage.png")
 
 
     # #  # apply saturation 
@@ -103,13 +105,15 @@ def load_images(filepaths, device, dimensions, return_augmented=False):
 
     # tensor_list.append(aug_batch.to(device))               # NO unsqueeze needed
 
-    if return_augmented:
+    if augmentation == "sathue":
 # create two extra colour-jittered copies
       sat  = adjust_saturation(image_tensor, saturation_factor=1.5)
       hue  = adjust_hue(image_tensor,   hue_factor=0.1)
       stack = torch.stack([image_tensor, sat, hue], dim=0)   # [3, 3, H, W]
       tensor_list.append(stack.to(device))
-    else:
+    
+
+    elif augmentation == "test":
       tensor_list.append(image_tensor.unsqueeze(0).to(device))  # [1, 3, H, W]
 
     
