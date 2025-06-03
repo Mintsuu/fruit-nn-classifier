@@ -47,26 +47,32 @@ def prepare_data(target_dir, device):
   binned_outputs = [binned_labels[name] for name in labels]
   return binned_labels, np.array(class_to_idx), torch.tensor(binned_outputs).to(device)
 
-def load_images(filepaths, device):
-  # Define image transformation function
-  transform = transforms.Compose([
-    transforms.Resize((28, 28)),
-    transforms.ToTensor()
+def load_images(filepaths, device, augment=False):
+  if augment:
+    transform = transforms.Compose([
+        transforms.Resize((28, 28)),
+        transforms.RandomAffine(
+            degrees=0,
+            translate=(0.2, 0.2),  # 平移
+            shear=20               # 剪切
+        ),
+        transforms.ToTensor()
     ])
-  
-  # Store tensor list for all images 
+  else:
+    transform = transforms.Compose([
+        transforms.Resize((28, 28)),
+        transforms.ToTensor()
+    ])
+
   tensor_list = []
- 
-  # Perform data conversion into tensors
+
   for image_path in filepaths:
     image = Image.open(image_path).convert("RGB")
     image_tensor = transform(image)
     tensor_list.append(image_tensor.unsqueeze(0).to(device))
-    
-  # Check if batch of tensors have been properly added to the list, else return empty tensor
+
   if tensor_list:
-    result_tensor = torch.cat(tensor_list, dim=0)
-    return result_tensor
+    return torch.cat(tensor_list, dim=0)
   else:
     return torch.empty(0, 3, 28, 28, device=device)
 

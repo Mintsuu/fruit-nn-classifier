@@ -116,7 +116,9 @@ def test(model, filepaths, labels, device):
 
 
   for i in range(0, total_samples, batch_size):
-    batch_inputs = load_images(filepaths[i : i + batch_size], device)
+
+    batch_inputs = load_images(filepaths[indices], device, augment=True)
+
     batch_labels = labels[i : i + batch_size]
 
     # Forward pass: compute predicted outputs
