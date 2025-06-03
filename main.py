@@ -6,7 +6,7 @@ from Util import prepare_data
 
 ### EXPERIMENT PARAMS ###
 
-N_EPOCHS = 6
+N_EPOCHS = 20
 BATCH_SIZE = 16
 IMAGE_DIMS = (160, 160)
 
