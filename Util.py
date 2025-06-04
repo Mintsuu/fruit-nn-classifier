@@ -1,7 +1,7 @@
 import os, torch
 import numpy as np
 from torchvision.utils import save_image
-from torchvision.transforms.functional import adjust_saturation
+from torchvision.transforms.functional import adjust_contrast, adjust_saturation, adjust_sharpness
 from torchvision.transforms.functional import adjust_hue
 from torchvision import transforms 
 from PIL import Image
@@ -53,30 +53,13 @@ def prepare_data(target_dir, device):
 
 def load_images(filepaths, device, dimensions):
   # Define image transformation function
-  transform = transforms.Compose([
-    transforms.Resize(dimensions),
-    transforms.ToTensor()
-    ])
   
   # Store tensor list for all images 
   tensor_list = [] # empty array where will add each batch tensor into array 
  
   # Perform data conversion into tensors
   for image_path in filepaths:
-   
-    image = Image.open(image_path).convert("RGB")
-    # pil image converted to tensor rgb 
-    image_tensor = transform(image)
-     # apply saturation 
-    image_saturation_tensor = adjust_saturation(img=image_tensor, saturation_factor=2.0)
-    #apply hue 
-    image_hue_tensor = adjust_hue(img = image_tensor, hue_factor = 0.2)
-    save_image(image_tensor, "baseline_test.png")
-    save_image(image_saturation_tensor, "saturation_test.png")
-    save_image(image_hue_tensor, "hue_test.png")
-    
-    # add up the image_tensor with image_saturation_tensor
-    combined_tensor = torch.cat(( image_saturation_tensor, image_hue_tensor), dim=0) 
+    combined_tensor = set_input_channels(image_path, dimensions)
     tensor_list.append(combined_tensor.unsqueeze(0).to(device))
     
   # Check if batch of tensors have been properly added to the list, else return empty tensor
@@ -87,4 +70,30 @@ def load_images(filepaths, device, dimensions):
     print("No images loaded into tensors ")
     return torch.empty(0, 3, 28, 28, device=device)
 
-# load_images(["./train/apple_1.jpg"], device="cuda")
+
+def set_input_channels(image_url, dimensions):
+  transform = transforms.Compose([
+    transforms.Resize(dimensions),
+    transforms.ToTensor()
+  ])
+  image = Image.open(image_url).convert("RGB")
+  image_greyscale = Image.open(image_url).convert("L")
+  image_tensor = transform(image)
+  image_greyscale_tensor = transform(image_greyscale)
+  # Experiment 1: Applying saturation to image tensor with a factor of 2.0
+  image_saturation_tensor = adjust_saturation(img=image_tensor, saturation_factor=2.0)
+  # Experiment 2: Applying hue adjustment to image tensor with a factor of 0.2
+  image_hue_tensor = adjust_hue(img = image_tensor, hue_factor = 0.2)
+  # Experiment 3: Applying greyscale adjustment to image tensor 
+  image_greyscale_tensor = adjust_contrast(img = image_greyscale_tensor, contrast_factor=2)
+  image_greyscale_tensor = adjust_sharpness(img = image_greyscale_tensor, sharpness_factor=2) 
+  # Concat result tensors
+  combined_tensor = torch.cat(( image_saturation_tensor, image_hue_tensor, image_greyscale_tensor), dim=0) 
+
+  return combined_tensor
+
+def save_test_images(image_name, image_tensors):
+  num_channels = image_tensors.size(dim=0)
+  for i in range(0, num_channels):
+    save_image(image_tensors[i], f"./sample-images/{image_name}_channel_{i}.png" )
+
