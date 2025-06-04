@@ -3,6 +3,7 @@ import numpy as np
 from torchvision.utils import save_image
 from torchvision.transforms.functional import adjust_contrast, adjust_saturation, adjust_sharpness
 from torchvision.transforms.functional import adjust_hue
+from torchvision.transforms import functional as F
 from torchvision import transforms 
 from PIL import Image
 
@@ -11,6 +12,18 @@ fixed_training_labels = {
   'banana_61.jpg': 'mixed',
   'orange_62.jpg': 'ignore',
   }
+class PadToSquare:
+    """Pad PIL image to a square, keeping content centred."""
+    def __call__(self, img: Image.Image) -> Image.Image:
+        w, h = img.size                       # width, height
+        max_wh   = max(w, h)                  # target square side
+        pad_left = (max_wh - w) // 2
+        pad_top  = (max_wh - h) // 2
+        pad_right  = max_wh - w - pad_left
+        pad_bottom = max_wh - h - pad_top
+        # (left, top, right, bottom)
+        return F.pad(img, (pad_left, pad_top, pad_right, pad_bottom),
+                     fill=0, padding_mode="constant")
 
 def dataset_labels(labels):
   label_list = list(set(labels))
@@ -62,8 +75,14 @@ def prepare_data(target_dir, device):
   binned_outputs = [binned_labels[name] for name in labels]
   return binned_labels, np.array(class_to_idx), torch.tensor(binned_outputs).to(device)
 
-def load_images(filepaths, device, dimensions):
+def load_images(filepaths, device, dimensions, augmentation):
   # Define image transformation function
+  transform = transforms.Compose([
+    transforms.Resize(160),
+    # PadToSquare(),     # shorter edge → 160, keeps aspect
+    transforms.CenterCrop(dimensions),
+    transforms.ToTensor()       # convert to [0,1] tensor
+    ])
   
   # Store tensor list for all images 
   tensor_list = [] # empty array where will add each batch tensor into array 
@@ -72,6 +91,45 @@ def load_images(filepaths, device, dimensions):
   for image_path in filepaths:
     combined_tensor = set_input_channels(image_path, dimensions)
     tensor_list.append(combined_tensor.unsqueeze(0).to(device))
+   
+    image = Image.open(image_path).convert("RGB")
+    # pil image converted to tensor rgb 
+    image_tensor = transform(image)
+
+
+    save_image(image_tensor, "baseImage.png")
+
+
+    # #  # apply saturation 
+    # image_saturation_tensor = adjust_saturation(img=image_tensor, saturation_factor=2.0)
+    # # #apply hue 
+    # image_hue_tensor = adjust_hue(img = image_tensor, hue_factor = 0.2)
+    # save_image(image_tensor, "baseline_test.png")
+    # save_image(image_saturation_tensor, "saturation_test.png")
+    # save_image(image_hue_tensor, "hue_test.png")
+    
+    # # add up the image_tensor with image_saturation_tensor
+    # # combined_tensor = torch.cat(( image_saturation_tensor, image_hue_tensor), dim=0) 
+    # # tensor_list.append(combined_tensor.unsqueeze(0).to(device))
+
+    # # stack instead of cat, and along a NEW batch axis
+    # aug_batch = torch.stack([image_tensor,
+    #                      image_saturation_tensor,
+    #                      image_hue_tensor], dim=0)    # shape [3, 3, D, D]
+
+    # tensor_list.append(aug_batch.to(device))               # NO unsqueeze needed
+
+    if augmentation == "sathue":
+# create two extra colour-jittered copies
+      sat  = adjust_saturation(image_tensor, saturation_factor=1.5)
+      hue  = adjust_hue(image_tensor,   hue_factor=0.1)
+      stack = torch.stack([image_tensor, sat, hue], dim=0)   # [3, 3, H, W]
+      tensor_list.append(stack.to(device))
+    
+
+    elif augmentation == "test":
+      tensor_list.append(image_tensor.unsqueeze(0).to(device))  # [1, 3, H, W]
+
     
   # Check if batch of tensors have been properly added to the list, else return empty tensor
   if tensor_list:
