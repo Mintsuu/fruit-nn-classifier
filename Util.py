@@ -6,7 +6,11 @@ from torchvision.transforms.functional import adjust_hue
 from torchvision import transforms 
 from PIL import Image
 
-
+fixed_training_labels = {
+  'banana_35.jpg': 'mixed',
+  'banana_61.jpg': 'mixed',
+  'orange_62.jpg': 'ignore',
+  }
 
 def dataset_labels(labels):
   label_list = list(set(labels))
@@ -35,10 +39,17 @@ def prepare_data(target_dir, device):
   # Removing gitignore file from dataset
   class_names.remove(".gitignore")
   # TODO: Perform data cleansing here (e.g. renaming of misclassified dataset)
+
+  if target_dir == './train':
+    for blacklist in fixed_training_labels:
+      if fixed_training_labels[blacklist] == 'ignore':
+        print(blacklist)
+        class_names.remove(blacklist)
   # Creating a dict, using the index as the key and the filename as the value
   # class_to_idx = [name: idx for idx, name in enumerate(class_names)]
   class_to_idx = [f"{target_dir}/{name}" for name in class_names]
   # Substring out the name of the fruit from the filename
+  print(class_names)
   for class_name in class_names:
     labels.append(class_name.split("_")[0])
   # Binning each possible outcome into a dictionary
