@@ -113,7 +113,6 @@ def test(model, filepaths, labels, device, image_dimensions):
   labels = labels[permutation]
   
 
-
   for i in range(0, total_samples, batch_size):
     batch_inputs = load_images(filepaths[i : i + batch_size], device, dimensions=image_dimensions)
     batch_labels = labels[i : i + batch_size]
@@ -134,6 +133,8 @@ def test(model, filepaths, labels, device, image_dimensions):
     all_preds.extend(preds.cpu().numpy())
     all_targets.extend(batch_labels.cpu().numpy())
 
-
-
     print(f"({samples_tested}/{total_samples}): Accuracy={accuracy:.5f}")
+
+def save_model_state(model_state, path):
+  torch.save(model_state, path)
+  print(f"Model state has been saved to {path}")

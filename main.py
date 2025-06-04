@@ -1,23 +1,37 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from SimpleNN import SimpleCNN, train, test
+from SimpleNN import SimpleCNN, train, test, save_model_state
 from Util import prepare_data
 
 # Set device type (check if you have a NVIDIA card)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Currently using {device}...")
-dir_train = "./train" 
+dir_train = "./train"
 output_labels, filepaths, labels = prepare_data(dir_train, device)
 
-target_image_size = (160,160)
+target_image_size = (224, 224)
 # Instantiate the model, define the loss function and optimizer
 model = SimpleCNN(input_channels=6, image_dimensions=target_image_size).to(device)
 
 # Train the model
-criterion = nn.CrossEntropyLoss() # define loss function
+criterion = nn.CrossEntropyLoss()  # define loss function
 optimizer = optim.Adam(model.parameters(), lr=0.001)
-train(model, criterion, optimizer, filepaths, labels, device, epochs=6, image_dimensions=target_image_size)
+
+train(
+    model,
+    criterion,
+    optimizer,
+    filepaths,
+    labels,
+    device,
+    epochs=6,
+    image_dimensions=target_image_size,
+)
+
+# Save the trained model's state
+path_to_saved_state = "./model/model_saved_state"
+save_model_state(model.state_dict(), path_to_saved_state)
 
 # Test the model
 dir_test = "./test/"
