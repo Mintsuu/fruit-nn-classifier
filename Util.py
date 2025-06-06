@@ -3,6 +3,25 @@ import numpy as np
 from torchvision import transforms
 from PIL import Image
 
+from torchvision.utils import save_image
+from torchvision.transforms.functional import adjust_saturation
+from torchvision.transforms.functional import adjust_hue
+from torchvision.transforms import functional as F
+
+
+class PadToSquare:
+    """Pad PIL image to a square, keeping content centred."""
+    def __call__(self, img: Image.Image) -> Image.Image:
+        w, h = img.size                       # width, height
+        max_wh   = max(w, h)                  # target square side
+        pad_left = (max_wh - w) // 2
+        pad_top  = (max_wh - h) // 2
+        pad_right  = max_wh - w - pad_left
+        pad_bottom = max_wh - h - pad_top
+        # (left, top, right, bottom)
+        return F.pad(img, (pad_left, pad_top, pad_right, pad_bottom),
+                     fill=0, padding_mode="constant")
+
 
 def dataset_labels(labels):
   label_list = list(set(labels))
@@ -47,11 +66,18 @@ def prepare_data(target_dir, device):
   binned_outputs = [binned_labels[name] for name in labels]
   return binned_labels, np.array(class_to_idx), torch.tensor(binned_outputs).to(device)
 
-def load_images(filepaths, device):
+def load_images(filepaths, device, dimensions):
   # Define image transformation function
+  #transform = transforms.Compose([
+  #  transforms.Resize((28, 28)),
+  #  transforms.ToTensor()
+  #  ])
   transform = transforms.Compose([
-    transforms.Resize((28, 28)),
-    transforms.ToTensor()
+    transforms.Resize(160),
+    PadToSquare(),
+    transforms.Resize((160, 160)),      # shorter edge → 160, keeps aspect
+    # transforms.CenterCrop(dimensions),
+    transforms.ToTensor()       # convert to [0,1] tensor
     ])
   
   # Store tensor list for all images 
@@ -68,6 +94,7 @@ def load_images(filepaths, device):
     result_tensor = torch.cat(tensor_list, dim=0)
     return result_tensor
   else:
-    return torch.empty(0, 3, 28, 28, device=device)
+    #return torch.empty(0, 3, 28, 28, device=device)
+    return torch.empty(0, 3, 160, 160, device=device)
 
 # load_images(["./train/apple_1.jpg"], device="cuda")
