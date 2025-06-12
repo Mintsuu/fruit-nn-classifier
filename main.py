@@ -1,14 +1,14 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from SimpleNN import SimpleCNN, train, test
+from SimpleNN import SimpleCNN, FruitCNN, FruitCNNWiderFilters, MnistCNN, train, test
 from Util import prepare_data
 
 ### EXPERIMENT PARAMS ###
 
-N_EPOCHS = 20
+N_EPOCHS = 50
 BATCH_SIZE = 16
-IMAGE_DIMS = (160, 160)
+IMAGE_DIMS = (224, 224)
 
 #########################
 
@@ -19,12 +19,14 @@ dir_train = "./train"
 output_labels, filepaths, labels = prepare_data(dir_train, device)
 
 # Instantiate the model, define the loss function and optimizer
-model = SimpleCNN(input_channels=3, image_dimensions=IMAGE_DIMS).to(device)
+model = MnistCNN(input_channels=3, image_dimensions=IMAGE_DIMS).to(device)
+
+#loss_weights = torch.tensor([1, 1, 3, 1], dtype=torch.float, device=device)
 
 # Train the model
 criterion = nn.CrossEntropyLoss() # define loss function
 optimizer = optim.Adam(model.parameters(), lr=0.001)
-train_batch, train_total = train(model, criterion, optimizer, filepaths, labels, device, epochs=N_EPOCHS, image_dimensions=IMAGE_DIMS, augment = "test")
+train_batch, train_total = train(model, criterion, optimizer, filepaths, labels, device, epochs=N_EPOCHS, n_batch_size=BATCH_SIZE, image_dimensions=IMAGE_DIMS, augment="224")
 
 # Test the model
 dir_test = "./test/"
