@@ -7,8 +7,8 @@ from Util import prepare_data
 ### EXPERIMENT PARAMS ###
 
 N_EPOCHS = 50
-BATCH_SIZE = 16
-IMAGE_DIMS = (224, 224)
+BATCH_SIZE = 10
+IMAGE_DIMS = (160, 160)
 
 #########################
 
@@ -19,14 +19,14 @@ dir_train = "./train"
 output_labels, filepaths, labels = prepare_data(dir_train, device)
 
 # Instantiate the model, define the loss function and optimizer
-model = MnistCNN(input_channels=3, image_dimensions=IMAGE_DIMS).to(device)
+model = SimpleCNN(input_channels=3, image_dimensions=IMAGE_DIMS).to(device)
 
 #loss_weights = torch.tensor([1, 1, 3, 1], dtype=torch.float, device=device)
 
 # Train the model
 criterion = nn.CrossEntropyLoss() # define loss function
 optimizer = optim.Adam(model.parameters(), lr=0.001)
-train_batch, train_total = train(model, criterion, optimizer, filepaths, labels, device, epochs=N_EPOCHS, n_batch_size=BATCH_SIZE, image_dimensions=IMAGE_DIMS, augment="224")
+train_batch, train_total = train(model, criterion, optimizer, filepaths, labels, device, epochs=N_EPOCHS, n_batch_size=BATCH_SIZE, image_dimensions=IMAGE_DIMS, augment="160")
 
 # Test the model
 dir_test = "./test/"

@@ -27,7 +27,7 @@ class SimpleCNN(nn.Module):
     # Max Pooling Layer: downsample by a factor of 2.
     self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
     # Fully Connected Layer 1: input size = 7 * 7 * 32 (from feature maps), output size = 128.
-    self.fc1 = nn.Linear(in_features= self.conv3.out_channels * int(self.image_dimensions[0] / 4) * int(self.image_dimensions[1] / 4), out_features=128)
+    self.fc1 = nn.Linear(in_features= self.conv3.out_channels * int(self.image_dimensions[0] / 8) * int(self.image_dimensions[1] / 8), out_features=128)
     # self.fc1 = nn.Linear(in_features= self.conv2.out_channels * (image_dimensions[0]/4) * (image_dimensions[1]/4), out_features=128)
     
     # Fully Connected Layer 2: input size = 128, output size = 10 (for 10 output classes).
@@ -53,7 +53,7 @@ class SimpleCNN(nn.Module):
     x = self.pool(x)
 
     # Flatten the feature maps 
-    x = x.view(-1, self.conv3.out_channels * int(self.image_dimensions[0] / 4) * int(self.image_dimensions[1] / 4))
+    x = x.view(-1, self.conv3.out_channels * int(self.image_dimensions[0] / 8) * int(self.image_dimensions[1] / 8))
 
     # Fully connected layers
     x = self.fc1(x)
@@ -164,7 +164,7 @@ def train(model, criterion, optimizer, filepaths, labels, device, epochs, n_batc
             v_batch = val_paths[start:end]
             v_imgs  = load_images(v_batch, device,
                                   dimensions=image_dimensions,
-                                  augmentation="224")
+                                  augmentation="160")
             v_lbls  = val_labels[start:end]
             v_out   = model(v_imgs)
             l       = criterion(v_out, v_lbls)
@@ -271,7 +271,7 @@ def test(model, filepaths, labels, device, image_dimensions,
   model.eval()         
   with torch.no_grad(): 
     for i in range(0, total_samples, batch_size):
-      batch_inputs = load_images(filepaths[i : i + batch_size], device, dimensions=image_dimensions, augmentation="224")
+      batch_inputs = load_images(filepaths[i : i + batch_size], device, dimensions=image_dimensions, augmentation="160")
       batch_labels = labels[i : i + batch_size]
 
       # Forward pass: compute predicted outputs
